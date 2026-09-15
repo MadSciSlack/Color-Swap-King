@@ -33,3 +33,5 @@ Open the app EXE, drop in your GCode.3MF file, check the boxes by your manual fi
 - Printable PDF checklist export option.
 - Other format support and testing.
 - Porting or rebuilding for other operating systems.
+If you are able to support my development, you are able to tip ko-fi.com/madscislack.
+Thank you to anyone who chooses to help, it means a lot.
