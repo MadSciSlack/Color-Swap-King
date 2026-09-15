@@ -23,7 +23,7 @@ Color Swap King analyzes Bambu Labs (and compatible) GCode.3MF files to produce 
 - A little of HTML for the export, a little QT / PySide6 for the UI, and a whole lot of Python behind the scenes.
 
 ## How to Use It
-Download the app EXE here: https://github.com/MadSciSlack/Color-Swap-King/blob/534d79848f5a7935531c12e3223d2a4a6f9547a1/dist/color_swap_king.exe. That file is located here in this repository through Github's Large File Storage (LFS).
+Download the app EXE here: https://github.com/MadSciSlack/Color-Swap-King/releases/download/dist/color_swap_king.exe. That file is located here in this repository through Github's Large File Storage (LFS).
 Put the file wherever you want to keep it and launch it from.  You can also create a shortcut to it and tuck it away if you prefer that.  You don't need to setup or install it, it's ready to go!
 Open the app EXE, drop in your GCode.3MF file, check the boxes by your manual filaments, and export. You can choose the layout options, which extra information to include, and whether to include automatic filament swaps in the checklist.
 
