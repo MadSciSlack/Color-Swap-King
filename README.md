@@ -1,31 +1,27 @@
-# Color Swap List — Prototype 0
+# Color Swap King
+Color Swap King analyzes Bambu Labs (and compatible) GCode.3MF files to produce a customizable and printable checklist of color swaps for the user. 3D printers don't actually tell the user which filament to swap to when using multiple manual swapped filaments, and many of them don't show the current layer number when the "insert filament" message is displayed.  This causes a significant challenge for users who aren't afraid to use manual filament swaps, and Color Swap King makes it so much easier.
 
-First concrete parser prototype for Bambu Studio 3MF G-code.
+## Main Features
+- Portable EXE file, no installation required! Totally self-contained in one file.
+- Easy to use GUI.
+- Drag and drop file loading.
+- Full Bambu Labs GCode.3MF support.
+- Allows the user to specify which colors require manual swaps and matches them to the GCode's swaps.
+- Automatically generates a filament color legend with color previews from the GCode.
+- Generates a full list of manual filament swaps based on the user's manually swapped filaments.
+- Exports a printable HTML checklist and allows the user to decide how many columns to use and what information to include.
 
-## What it does
+## How It Does It
+- Analyzes Bambu Labs compatible 3MF Gcode and parses filament swap and print information.
+- Reads Bambu filament metadata and color information from the GCode. 
+- Normalizes Bambu's filament numbering in a user friendly way.
+- Checks multiple ways, finds, and finds all manual (and automatic if you like) color swaps regardless of incomplete GCode comments.
+- Tracks the swap sequence number and layer height for each filament swap.
+- Preserves raw GCode line numbers for all of you Power Users ;).
 
-- Detects Bambu 3MF G-code by the presence of `Metadata/plate_1.gcode`.
-- Reads Bambu filament metadata from `slice_info.config` and `plate_1.json`.
-- Normalizes Bambu's zero-based `T0`, `T1`, etc. to user-facing filament numbers `#1`, `#2`, etc.
-- Finds ordered `CP TOOLCHANGE START` events in the print G-code.
-- Tracks the current `; layer #N` and `; Z_HEIGHT` for each transition.
-- Preserves raw G-code line numbers.
-- Keeps transition origin as `unknown` rather than incorrectly treating a post-slice/user-added change as a physical manual intervention.
-- Resolves physical interactions using a user-supplied manual-infeed set.
+## Future Development
+- Generic G-code parser testing / tuning.
+- Printable PDF checklist export option.
+- Other format support and testing.
+- Porting or rebuilding for other operating systems.
 
-## Example
-
-```text
-python prototype.py TestCube1-Manual-V1.gcode.3mf --manual 6
-```
-
-The resulting checklist should contain a manual load of #6 on layer 6 and a manual unload of #6 on layer 7.
-
-## Current deliberate limitations
-
-- No generic G-code parser yet.
-- No GUI yet.
-- No printable HTML/PDF yet.
-- No attempt to infer whether a transition was manually added after slicing.
-- Only the print's primary `plate_1.gcode` is parsed.
-- Startup/shutdown `T` commands outside a `CP TOOLCHANGE START` block are ignored.
