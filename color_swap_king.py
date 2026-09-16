@@ -28,19 +28,25 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-import bambu_parser
-from exporter import ChecklistConfig, HTMLChecklistExporter, normalize_hex_color
+import dispatcher
+from exporter import (
+    ChecklistConfig,
+    HTMLChecklistExporter,
+    PDFChecklistExporter,
+    normalize_hex_color,
+)
 
 
 class ExportConfigDialog(QDialog):
     """Modal dialog for configuring export settings (columns, layer ranges, legend, toggles)."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, is_pdf: bool = False):
         super().__init__(parent)
-        self.setWindowTitle("Export Checklist Options")
-        self.resize(360, 290)
+        self.is_pdf = is_pdf
+        self.setWindowTitle("Export PDF Checklist Options" if is_pdf else "Export HTML Checklist Options")
 
-        layout = QFormLayout(self)
+        main_layout = QVBoxLayout(self)
+        form_layout = QFormLayout()
 
         self.spin_cols = QSpinBox()
         self.spin_cols.setRange(1, 10)
@@ -61,19 +67,34 @@ class ExportConfigDialog(QDialog):
         self.chk_legend = QCheckBox("Include Filament Legend in Header")
         self.chk_legend.setChecked(True)
 
-        layout.addRow("Columns per Row (1-10):", self.spin_cols)
-        layout.addRow("Layer Range Filter:", self.txt_layer_range)
-        layout.addRow(self.chk_seq)
-        layout.addRow(self.chk_z)
-        layout.addRow(self.chk_dotted)
-        layout.addRow(self.chk_legend)
+        form_layout.addRow("Columns per Row (1-10):", self.spin_cols)
+        form_layout.addRow("Layer Range Filter:", self.txt_layer_range)
+        form_layout.addRow(self.chk_seq)
+        form_layout.addRow(self.chk_z)
+        form_layout.addRow(self.chk_dotted)
+        form_layout.addRow(self.chk_legend)
+
+        main_layout.addLayout(form_layout)
+
+        # PDF Advisory Banner
+        if self.is_pdf:
+            pdf_note = QLabel(
+                "<i><b>Note:</b> PDF export works best with <b>5 or fewer columns</b> "
+                "when including layer numbers, or <b>6 or fewer</b> when excluded.</i>"
+            )
+            pdf_note.setWordWrap(True)
+            pdf_note.setStyleSheet(
+                "color: #444; background-color: #f8f9fa; border: 1px solid #d0d0d0; "
+                "border-radius: 4px; padding: 6px; margin-top: 6px;"
+            )
+            main_layout.addWidget(pdf_note)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        layout.addRow(buttons)
+        main_layout.addWidget(buttons)
 
     def get_config(self) -> ChecklistConfig:
         return ChecklistConfig(
@@ -90,8 +111,10 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Color Swap King — v0.30")
+        self.setWindowTitle("Color Swap King — v0.70")
         self.resize(1100, 700)
+        
+        # Enables drag & drop directly on the QMainWindow
         self.setAcceptDrops(True)
 
         self.current_job = None
@@ -115,12 +138,12 @@ class MainWindow(QMainWindow):
         file_box = QGroupBox("File Input")
         file_layout = QVBoxLayout(file_box)
 
-        self.btn_open = QPushButton("Open Sliced .3MF")
+        self.btn_open = QPushButton("Open Sliced File")
         self.btn_open.setFixedHeight(36)
         self.btn_open.clicked.connect(self.open_file_dialog)
 
         self.lbl_file_status = QLabel(
-            "Drag & Drop a .3mf file here\nor use the button above."
+            "Drag & Drop a .gcode or .3mf file here\nor use the button above."
         )
         self.lbl_file_status.setWordWrap(True)
 
@@ -139,7 +162,7 @@ class MainWindow(QMainWindow):
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
 
-        self.lbl_no_filaments = QLabel("Load a 3MF file to detect filaments.")
+        self.lbl_no_filaments = QLabel("Load a file to detect filaments.")
         self.scroll_layout.addWidget(self.lbl_no_filaments)
 
         self.scroll.setWidget(self.scroll_content)
@@ -158,6 +181,11 @@ class MainWindow(QMainWindow):
         self.btn_export.setFixedHeight(32)
         self.btn_export.clicked.connect(self.export_checklist_html)
         opts_layout.addWidget(self.btn_export)
+
+        self.btn_export_pdf = QPushButton("Export Checklist (PDF)")
+        self.btn_export_pdf.setFixedHeight(32)
+        self.btn_export_pdf.clicked.connect(self.export_checklist_pdf)
+        opts_layout.addWidget(self.btn_export_pdf)
 
         left_layout.addWidget(opts_box)
 
@@ -200,6 +228,7 @@ class MainWindow(QMainWindow):
 
         splitter.setSizes([320, 780])
 
+    # --- DRAG & DROP HANDLERS ---
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -207,23 +236,23 @@ class MainWindow(QMainWindow):
     def dropEvent(self, event):
         for url in event.mimeData().urls():
             file_path = Path(url.toLocalFile())
-            if file_path.suffix.lower() in [".3mf", ".gcode"]:
+            if file_path.suffix.lower() in [".3mf", ".gcode", ".gco", ".g"]:
                 self.load_file(file_path)
                 break
 
     def open_file_dialog(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Open Sliced 3MF File",
+            "Open Sliced Print File",
             "",
-            "Bambu 3MF Files (*.3mf *.gcode.3mf)",
+            "Supported Files (*.gcode *.3mf);;G-Code Files (*.gcode);;3MF Archives (*.3mf);;All Files (*)",
         )
         if file_path:
             self.load_file(Path(file_path))
 
     def load_file(self, path: Path):
         try:
-            self.current_job = bambu_parser.parse(path)
+            self.current_job = dispatcher.parse(path)
             self.lbl_file_status.setText(f"Loaded: {path.name}")
             self.manual_infeed_ids.clear()
 
@@ -330,7 +359,7 @@ class MainWindow(QMainWindow):
         if not self.current_job:
             return
 
-        dlg = ExportConfigDialog(self)
+        dlg = ExportConfigDialog(self, is_pdf=False)
         if dlg.exec() != QDialog.Accepted:
             return
 
@@ -352,6 +381,34 @@ class MainWindow(QMainWindow):
             exporter = HTMLChecklistExporter(self.current_job, events, config)
             html_content = exporter.generate_html()
             Path(file_path).write_text(html_content, encoding="utf-8")
+            self.lbl_file_status.setText(f"Exported HTML: {Path(file_path).name}")
+
+    def export_checklist_pdf(self):
+        if not self.current_job:
+            return
+
+        dlg = ExportConfigDialog(self, is_pdf=True)
+        if dlg.exec() != QDialog.Accepted:
+            return
+
+        config = dlg.get_config()
+
+        show_all = self.chk_show_all.isChecked()
+        events = self.current_job.color_swap_list(
+            self.manual_infeed_ids, show_all=show_all
+        )
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export PDF Checklist",
+            "color_swap_checklist.pdf",
+            "PDF Files (*.pdf)",
+        )
+
+        if file_path:
+            exporter = PDFChecklistExporter(self.current_job, events, config)
+            exporter.export_pdf(file_path)
+            self.lbl_file_status.setText(f"Exported PDF: {Path(file_path).name}")
 
 
 if __name__ == "__main__":

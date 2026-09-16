@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
-from typing import Optional
+from dataclasses import asdict, dataclass, field
 import json
+from pathlib import Path
 import re
-import zipfile
+from typing import Optional
 import xml.etree.ElementTree as ET
 
 
@@ -201,23 +200,11 @@ def _find_plate_gcode_files(z: zipfile.ZipFile) -> list[str]:
     return [name for _, name in found_plates]
 
 
-def detect_format(path: str | Path) -> str:
-    path = Path(path)
-    if zipfile.is_zipfile(path):
-        with zipfile.ZipFile(path) as z:
-            if _find_plate_gcode_files(z):
-                return "bambu_3mf_gcode"
-            return "3mf_unknown"
-
-    if path.suffix.lower() == ".gcode":
-        return "raw_gcode"
-
-    return "unknown"
-
-
 def parse_bambu_3mf(
     path: str | Path, target_plate_path: Optional[str] = None
 ) -> ParsedJob:
+    import zipfile  # Safety import inside function scope if needed
+
     path = Path(path)
     if not zipfile.is_zipfile(path):
         raise ValueError("Not a ZIP/3MF container.")
@@ -269,22 +256,6 @@ def parse_bambu_3mf(
             transitions=transitions,
             warnings=warnings,
         )
-
-
-def parse(path: str | Path) -> ParsedJob:
-    fmt = detect_format(path)
-    if fmt == "bambu_3mf_gcode":
-        return parse_bambu_3mf(path)
-    elif fmt == "3mf_unknown":
-        raise ValueError(
-            "Selected 3MF archive does not contain 'Metadata/plate_X.gcode'. Ensure this is a sliced Bambu Studio print file."
-        )
-    elif fmt == "raw_gcode":
-        raise ValueError(
-            "Raw G-code parsing is not yet implemented in this prototype."
-        )
-
-    raise ValueError(f"Unsupported or unrecognized file format: {fmt}")
 
 
 def to_dict(job: ParsedJob) -> dict:

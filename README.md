@@ -1,31 +1,38 @@
-# Color Swap List — Prototype 0
+# Color Swap King
+Color Swap King analyzes GCode files (Bambu compatible and generic) to produce a customizable and printable checklist of color swaps for the user. 3D printers don't actually tell the user which filament to swap to when using multiple manual swapped filaments, and many of them don't show the current layer number when the "insert filament" message is displayed.  This causes a significant challenge for users who aren't afraid to use manual filament swaps, and Color Swap King makes it so much easier.
 
-First concrete parser prototype for Bambu Studio 3MF G-code.
+## What It Does
+- Portable EXE file, no installation required! Totally self-contained in one file.
+- Easy to use GUI, drag and drop file loading.
+- Can easily handle MASSIVE GCode files.
+- Full Bambu Labs GCode.3MF support.
+- Full support for GCode files made with most slicers.
+- Allows the user to specify which colors require manual swaps and matches them to the GCode's swaps.
+- Allows the user to also include automatic filament swaps.
+- Automatically generates a filament color legend with color previews from the GCode.
+- Generates a full list of manual filament swaps based on the user's manually swapped filaments.
+- Exports a printable HTML checklist and allows the user to decide how many columns to use and what information to include.
+- Exports to a printable PDF file with the same customization options.
+- Specify a range by layer numbers, for example, manual swaps between layer 50 and 100.
 
-## What it does
+## How It Does It
+- Analyzes the GCode file to identify the type.
+- Directs Bambu Labs compatible 3MF Gcode to a dedicated module and parses filament swap and print information.
+- Directs other GCode to a generalized module and parses filament swap and print information.
+- Reads filament metadata and color information from the GCode. 
+- Normalizes filament numbering in a user friendly way.
+- Checks multiple ways and finds all manual (and automatic if you like) color swaps, even when GCode comments are incomplete.
+- Tracks the swap sequence number and layer height for each filament swap.
+- A little of HTML for the export, a little QT / PySide6 for the UI, and a whole lot of Python behind the scenes.
 
-- Detects Bambu 3MF G-code by the presence of `Metadata/plate_1.gcode`.
-- Reads Bambu filament metadata from `slice_info.config` and `plate_1.json`.
-- Normalizes Bambu's zero-based `T0`, `T1`, etc. to user-facing filament numbers `#1`, `#2`, etc.
-- Finds ordered `CP TOOLCHANGE START` events in the print G-code.
-- Tracks the current `; layer #N` and `; Z_HEIGHT` for each transition.
-- Preserves raw G-code line numbers.
-- Keeps transition origin as `unknown` rather than incorrectly treating a post-slice/user-added change as a physical manual intervention.
-- Resolves physical interactions using a user-supplied manual-infeed set.
+## How to Use It
+Download the app EXE here: https://github.com/MadSciSlack/Color-Swap-King/releases/download/V0.60-B0013/ColorSwapKing.exe. That file is located here in this repository.
+Put the file wherever you want to keep it and launch it from.  You can also create a shortcut to it and tuck it away if you prefer that.  You don't need to setup or install it, it's ready to go!
+Open the app EXE, drop in your GCode.3MF file, check the boxes by your manual filaments, and export. You can choose the layout options, which extra information to include, and whether to include automatic filament swaps in the checklist.
 
-## Example
 
-```text
-python prototype.py TestCube1-Manual-V1.gcode.3mf --manual 6
-```
-
-The resulting checklist should contain a manual load of #6 on layer 6 and a manual unload of #6 on layer 7.
-
-## Current deliberate limitations
-
-- No generic G-code parser yet.
-- No GUI yet.
-- No printable HTML/PDF yet.
-- No attempt to infer whether a transition was manually added after slicing.
-- Only the print's primary `plate_1.gcode` is parsed.
-- Startup/shutdown `T` commands outside a `CP TOOLCHANGE START` block are ignored.
+## Future Development
+- Other format support and testing.
+- Porting or rebuilding for other operating systems.
+If you are able to support my development, you are able to tip ko-fi.com/madscislack.
+Thank you to anyone who chooses to help, it means a lot.
