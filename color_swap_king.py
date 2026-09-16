@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-import bambu_parser
+import dispatcher
 from exporter import ChecklistConfig, HTMLChecklistExporter, normalize_hex_color
 
 
@@ -90,8 +90,10 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Color Swap King — v0.30")
+        self.setWindowTitle("Color Swap King — v0.60")
         self.resize(1100, 700)
+        
+        # Enables drag & drop directly on the QMainWindow
         self.setAcceptDrops(True)
 
         self.current_job = None
@@ -115,12 +117,12 @@ class MainWindow(QMainWindow):
         file_box = QGroupBox("File Input")
         file_layout = QVBoxLayout(file_box)
 
-        self.btn_open = QPushButton("Open Sliced .3MF")
+        self.btn_open = QPushButton("Open Sliced File")
         self.btn_open.setFixedHeight(36)
         self.btn_open.clicked.connect(self.open_file_dialog)
 
         self.lbl_file_status = QLabel(
-            "Drag & Drop a .3mf file here\nor use the button above."
+            "Drag & Drop a .gcode or .3mf file here\nor use the button above."
         )
         self.lbl_file_status.setWordWrap(True)
 
@@ -139,7 +141,7 @@ class MainWindow(QMainWindow):
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
 
-        self.lbl_no_filaments = QLabel("Load a 3MF file to detect filaments.")
+        self.lbl_no_filaments = QLabel("Load a file to detect filaments.")
         self.scroll_layout.addWidget(self.lbl_no_filaments)
 
         self.scroll.setWidget(self.scroll_content)
@@ -200,6 +202,7 @@ class MainWindow(QMainWindow):
 
         splitter.setSizes([320, 780])
 
+    # --- RESTORED V0.50 DRAG & DROP HANDLERS ---
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -207,23 +210,23 @@ class MainWindow(QMainWindow):
     def dropEvent(self, event):
         for url in event.mimeData().urls():
             file_path = Path(url.toLocalFile())
-            if file_path.suffix.lower() in [".3mf", ".gcode"]:
+            if file_path.suffix.lower() in [".3mf", ".gcode", ".gco", ".g"]:
                 self.load_file(file_path)
                 break
 
     def open_file_dialog(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Open Sliced 3MF File",
+            "Open Sliced Print File",
             "",
-            "Bambu 3MF Files (*.3mf *.gcode.3mf)",
+            "Supported Files (*.gcode *.3mf);;G-Code Files (*.gcode);;3MF Archives (*.3mf);;All Files (*)",
         )
         if file_path:
             self.load_file(Path(file_path))
 
     def load_file(self, path: Path):
         try:
-            self.current_job = bambu_parser.parse(path)
+            self.current_job = dispatcher.parse(path)
             self.lbl_file_status.setText(f"Loaded: {path.name}")
             self.manual_infeed_ids.clear()
 

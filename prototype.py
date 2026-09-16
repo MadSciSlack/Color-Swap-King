@@ -1,12 +1,30 @@
 from __future__ import annotations
+
 import argparse
 import json
-from bambu_parser import parse, to_dict
+from pathlib import Path
+
+from bambu_parser import to_dict
+from dispatcher import parse
+
+
+def to_dict_event(e):
+    return {
+        "sequence": e.sequence,
+        "layer": e.layer,
+        "z_height": e.z_height,
+        "source": e.source,
+        "destination": e.destination,
+        "raw_tool": e.raw_tool,
+        "line_number": e.line_number,
+        "origin": e.origin,
+        "interactions": e.interactions,
+    }
 
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Color Swap List — Prototype 0 Bambu parser"
+        description="Color Swap List — Prototype Multi-Format Parser"
     )
     ap.add_argument("file")
     ap.add_argument(
@@ -65,20 +83,6 @@ def main():
         print("\nWarnings:")
         for w in job.warnings:
             print(f"  - {w}")
-
-
-def to_dict_event(e):
-    return {
-        "sequence": e.sequence,
-        "layer": e.layer,
-        "z_height": e.z_height,
-        "source": e.source,
-        "destination": e.destination,
-        "raw_tool": e.raw_tool,
-        "line_number": e.line_number,
-        "origin": e.origin,
-        "interactions": e.interactions,
-    }
 
 
 if __name__ == "__main__":
