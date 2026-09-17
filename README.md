@@ -42,5 +42,5 @@ https://github.com/MadSciSlack/Color-Swap-King/releases/download/V0.70-B0018/Col
 ## Future Development
 - Other format support and testing.
 - Porting or rebuilding for other operating systems.
-If you are able to support my development, you are able to tip ko-fi.com/madscislack.
-Thank you to anyone who chooses to help, it means a lot. The app is free, ad free, and doesn't harvest your data so donations are the only support I receive for the project.
+I don't make anything from these projects, so thank you to any chooses to help by tipping below.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T7H4271AV3)
