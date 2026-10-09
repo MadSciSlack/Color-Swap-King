@@ -29,13 +29,9 @@ Color Swap King analyzes GCode files (Bambu compatible and generic) to produce a
 Download the EXE from here in the repo.  All release versions are available, but if you don't want to decide then I recommend the latest release.
 Put the file wherever you want to keep it and launch it from.  You can also create a shortcut to it and tuck it away if you prefer that.  You don't need to setup or install it, it's ready to go!
 Open the app EXE, drop in your GCode.3MF file, check the boxes by your manual filaments, and export. You can choose the layout options, which extra information to include, and whether to include automatic filament swaps in the checklist.
-## Which Version to Get?
-Which fits you best:
-"I just use Bambu Studio and I'm fine with viewing / printing the checklist from my web browser.": Download V0.50.  It's the simplest version and it works. The HTML exporter is the most flexible.:
-https://github.com/MadSciSlack/Color-Swap-King/releases/download/V0.50-B0011/color_swap_king.exe
-"I use a slicer other than Bambu Studio at least some of the time.": Download V0.60.  It features V0.50 plus the generic GCode parsing module:
-https://github.com/MadSciSlack/Color-Swap-King/releases/download/V0.60-B0013/color_swap_king.exe
-"Give me all the current features. / I don't want to decide. / Gimme that Print-to-PDF feature!": Download V0.70. It's the most complete version so far, and it'll probably be the active version for a little bit.
+
+## Download the App
+Download V0.70. This is the current stable version, and it'll be around for a while.
 https://github.com/MadSciSlack/Color-Swap-King/releases/download/V0.70-B0018/ColorSwapKing.exe
 
 
